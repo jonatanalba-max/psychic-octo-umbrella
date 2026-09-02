@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>TREINOS TEAM CS - v40 Reestruturado</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+<style>
+*{ -webkit-tap-highlight-color:transparent }
+.card-concluido{ border-color:#00C950 !important; background:#f0fdf4 !important }
+.input-carga{ font-family:'JetBrains Mono',monospace }
+::-webkit-scrollbar{ width:6px; height:6px } ::-webkit-scrollbar-thumb{ background:#0F1E3D22; border-radius:10px }
+</style>
+</head>
+<body class="bg-[#F8F6F1] text-[#0F1E3D] font-sans min-h-screen">
+<div id="app"></div>
+<script>
+const LS_GRUPOS='ttcs_v40_grupos';
+const LS_UNIDADES='ttcs_v40_unidades';
+const LS_TREINOS='ttcs_v40_treinos';
+const LS_ATLETAS='ttcs_v40_atletas';
+
+const GRUPOS_INICIAIS=[
+  {id:'pernas1', nome:'PERNAS 1', ordem:1, exercicios:[
+    {id:'ex_p1_1', nome:'Extensora — pré-exaustão', ordem:1, ativo:true},
+    {id:'ex_p1_2', nome:'Hack articulado', ordem:2, ativo:true},
+    {id:'ex_p1_3', nome:'Leg Press 45°', ordem:3, ativo:true},
+    {id:'ex_p1_4', nome:'Adutora', ordem:4, ativo:true},
+    {id:'ex_p1_5', nome:'Extensora — final', ordem:5, ativo:true},
+  ]},
+  {id:'ombros_peito_triceps', nome:'OMBROS + PEITO + TRÍCEPS', ordem:2, exercicios:[
+    {id:'ex_opt_1', nome:'Elevação máquina', ordem:1, ativo:true},
+    {id:'ex_opt_2', nome:'Elevação lateral máquina', ordem:2, ativo:true},
+    {id:'ex_opt_3', nome:'Elevação frontal com halter', ordem:3, ativo:true},
+    {id:'ex_opt_4', nome:'Supino articulado', ordem:4, ativo:true},
+    {id:'ex_opt_5', nome:'Crucifixo polia', ordem:5, ativo:true},
+    {id:'ex_opt_6', nome:'Tríceps testa', ordem:6, ativo:true},
+    {id:'ex_opt_7', nome:'Tríceps francês', ordem:7, ativo:true},
+    {id:'ex_opt_8', nome:'Tríceps polia', ordem:8, ativo:true},
+  ]},
+  {id:'biceps_posterior', nome:'BÍCEPS + POSTERIOR', ordem:3, exercicios:[
+    {id:'ex_bp_1', nome:'Glúteo no cabo', ordem:1, ativo:true},
+    {id:'ex_bp_2', nome:'Rosca alternada — bi-set', ordem:2, ativo:true},
+    {id:'ex_bp_3', nome:'Rosca martelo — bi-set', ordem:3, ativo:true},
+    {id:'ex_bp_4', nome:'Rosca polia', ordem:4, ativo:true},
+    {id:'ex_bp_5', nome:'Rosca máquina', ordem:5, ativo:true},
+    {id:'ex_bp_6', nome:'Stiff — halteres', ordem:6, ativo:true},
+    {id:'ex_bp_7', nome:'Mesa flexora', ordem:7, ativo:true},
+    {id:'ex_bp_8', nome:'Elevação pélvica', ordem:8, ativo:true},
+    {id:'ex_bp_9', nome:'Cadeira abdutora', ordem:9, ativo:true},
+  ]},
+  {id:'costas', nome:'COSTAS', ordem:4, exercicios:[
+    {id:'ex_c_1', nome:'Puxada Alta Polia', ordem:1, ativo:true},
+    {id:'ex_c_2', nome:'Remada Articulada', ordem:2, ativo:true},
+    {id:'ex_c_3', nome:'Puxada Alta Articulada', ordem:3, ativo:true},
+    {id:'ex_c_4', nome:'Pulldown', ordem:4, ativo:true},
+    {id:'ex_c_5', nome:'Remada Baixa — barra reta, supinada', ordem:5, ativo:true},
+  ]},
+  {id:'pernas2', nome:'PERNAS 2', ordem:5, exercicios:[
+    {id:'ex_p2_1', nome:'Leg Press 45°', ordem:1, ativo:true},
+    {id:'ex_p2_2', nome:'Leg articulado', ordem:2, ativo:true},
+    {id:'ex_p2_3', nome:'Hack articulado', ordem:3, ativo:true},
+    {id:'ex_p2_4', nome:'Búlgaro Smith', ordem:4, ativo:true},
+    {id:'ex_p2_5', nome:'Hack inclinado unilateral', ordem:5, ativo:true},
+    {id:'ex_p2_6', nome:'Agachamento Smith', ordem:6, ativo:true},
+    {id:'ex_p2_7', nome:'Extensora', ordem:7, ativo:true},
+    {id:'ex_p2_8', nome:'Flexora', ordem:8, ativo:true},
+    {id:'ex_p2_9', nome:'Abdutora', ordem:9, ativo:true},
+  ]},
+];
+const UNIDADES_INICIAIS=[
+  {id:'juca', nome:'Juca', ativa:true},
+  {id:'cavalhada', nome:'Cavalhada', ativa:true},
+  {id:'outra', nome:'Outra', ativa:true},
+];
+
+function load(key, fallback){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fallback }catch{return fallback} }
+function save(key, val){ localStorage.setItem(key, JSON.stringify(val)) }
+function uid(prefix='id'){ return prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6) }
+function todayISO(){ return new Date().toISOString().slice(0,10) }
+function formatBR(iso){ if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}` }
+function calcVolume(series, atleta){ let tot=0; series.forEach(s=>{ const c=parseFloat((s[atleta]?.carga||'0').toString().replace(',','.')); const r=parseInt(s[atleta]?.reps||'0'); if(!isNaN(c)&&!isNaN(r)) tot+=c*r; }); return tot; }
+
+let state={
+  grupos: load(LS_GRUPOS, GRUPOS_INICIAIS),
+  unidades: load(LS_UNIDADES, UNIDADES_INICIAIS),
+  treinos: load(LS_TREINOS, {}),
+  atletas: load(LS_ATLETAS, {atleta1:{id:'atleta1', nome:'Jonatan'}, atleta2:{id:'atleta2', nome:'Camile'}}),
+  aba:'treino',
+  selecao:{ grupoId:'pernas1', data: todayISO(), unidadeId:'juca' },
+  treinoAtual:null,
+  filtroHist:'todos',
+  evoAtleta:'jonatan',
+  evoExId:null,
+};
+
+function getGrupo(id){ return state.grupos.find(g=>g.id===id) }
+function getUnidade(id){ return state.unidades.find(u=>u.id===id) }
+function treinoId(sel){ return `${sel.grupoId}|${sel.data}|${sel.unidadeId}` }
+
+function ensureTreino(){
+  const id=treinoId(state.selecao);
+  let t=state.treinos[id];
+  const grupo=getGrupo(state.selecao.grupoId);
+  if(!grupo) return null;
+  if(!t){
+    const exerciciosData={};
+    grupo.exercicios.filter(e=>e.ativo).forEach(ex=>{
+      exerciciosData[ex.id]={ series:[{id:uid('ser'), jonatan:{carga:'',reps:''}, camile:{carga:'',reps:''}}], concluido:false, observacao:'' };
+    });
+    t={id, grupoId:state.selecao.grupoId, data:state.selecao.data, unidadeId:state.selecao.unidadeId, exerciciosData, obsGeral:'', updatedAt:Date.now()};
+    state.treinos[id]=t;
+    save(LS_TREINOS, state.treinos);
+  } else {
+    grupo.exercicios.filter(e=>e.ativo).forEach(ex=>{
+      if(!t.exerciciosData[ex.id]){
+        t.exerciciosData[ex.id]={ series:[{id:uid('ser'), jonatan:{carga:'',reps:''}, camile:{carga:'',reps:''}}], concluido:false, observacao:'' };
+      }
+    });
+  }
+  state.treinoAtual=t;
+  return t;
+}
+
+function render(){
+  const app=document.getElementById('app');
+  const treino=ensureTreino();
+  const grupo=getGrupo(state.selecao.grupoId);
+  const unidade=getUnidade(state.selecao.unidadeId);
+  const totalEx=grupo ? grupo.exercicios.filter(e=>e.ativo).length : 0;
+  let concluidos=0, volJ=0, volC=0;
+  if(treino && grupo){
+    grupo.exercicios.filter(e=>e.ativo).forEach(ex=>{
+      const ed=treino.exerciciosData[ex.id];
+      if(ed?.concluido) concluidos++;
+      if(ed?.series){ volJ+=calcVolume(ed.series,'jonatan'); volC+=calcVolume(ed.series,'camile'); }
+    });
+  }
+  const progressPct= totalEx? Math.round(concluidos/totalEx*100):0;
+
+  app.innerHTML=`
+  <header class="sticky top-0 z-40 backdrop-blur-xl bg-[#F8F6F1]/90 border-b border-[#0F1E3D]/10">
+    <div class="max-w-[980px] mx-auto px-4 h-[64px] flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-[#0F1E3D] text-white flex items-center justify-center font-extrabold text-[14px]">CS</div>
+        <div>
+          <div class="font-extrabold tracking-[-0.02em] leading-none text-[16px]">TREINOS TEAM CS</div>
+          <div class="text-[11px] font-semibold tracking-widest opacity-60 -mt-0.5">${formatBR(state.selecao.data)} • ${grupo?.nome||''} • ${unidade?.nome||''}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="hidden sm:flex items-center gap-2 text-[11px] font-mono bg-[#0F1E3D] text-white px-3 h-8 rounded-full"><span>${concluidos}/${totalEx} concluídos</span><span class="opacity-50">•</span><span>${progressPct}%</span></div>
+        <div class="w-8 h-8 rounded-full bg-[#0F1E3D]/10 flex items-center justify-center text-[11px] font-bold">${state.atletas.atleta1.nome[0]}${state.atletas.atleta2.nome[0]}</div>
+      </div>
+    </div>
+    <div class="max-w-[980px] mx-auto px-4 pb-3">
+      <div class="h-2 w-full bg-[#0F1E3D]/10 rounded-full overflow-hidden"><div class="h-full bg-[#00C950] transition-all" style="width:${progressPct}%"></div></div>
+      <div class="mt-2 flex gap-2 text-[11px] font-mono"><span class="px-2.5 py-1 rounded-full bg-[#0F1E3D] text-white">J: ${Math.round(volJ)} kg</span><span class="px-2.5 py-1 rounded-full bg-white border">${state.atletas.atleta2.nome}: ${Math.round(volC)} kg</span><span class="px-2.5 py-1 rounded-full bg-white border">Total: ${Math.round(volJ+volC)} kg</span></div>
+    </div>
+  </header>
+
+  <nav class="max-w-[980px] mx-auto px-4 mt-4">
+    <div class="grid grid-cols-4 gap-2">
+      ${['treino','historico','evolucao','config'].map(aba=>{
+        const labels={treino:'TREINO', historico:'HISTÓRICO', evolucao:'EVOLUÇÃO', config:'CONFIG'};
+        const active=state.aba===aba;
+        return `<button onclick="setAba('${aba}')" class="h-11 rounded-xl font-extrabold text-[12px] tracking-widest transition ${active?'bg-[#0F1E3D] text-white shadow':'bg-white border border-[#0F1E3D]/10 text-[#0F1E3D]/60'}">${labels[aba]}</button>`;
+      }).join('')}
+    </div>
+  </nav>
+
+  <main class="max-w-[980px] mx-auto px-4 pb-[120px] mt-5">
+    ${state.aba==='treino'? renderTreino(): ''}
+    ${state.aba==='historico'? renderHistorico(): ''}
+    ${state.aba==='evolucao'? renderEvolucao(): ''}
+    ${state.aba==='config'? renderConfig(): ''}
+  </main>
+
+  <div class="fixed bottom-0 left-0 right-0 z-30 bg-white/90 backdrop-blur border-t border-[#0F1E3D]/10">
+    <div class="max-w-[980px] mx-auto px-4 h-[72px] flex items-center justify-between gap-3">
+      <div class="text-[11px] leading-tight"><div class="font-bold">${grupo?.nome||''}</div><div class="opacity-60">${formatBR(state.selecao.data)} • ${unidade?.nome||''}</div></div>
+      <div class="flex gap-2">
+        <button onclick="gerarRelatorio()" class="h-11 px-4 rounded-xl bg-white border font-bold text-[12px]">RELATÓRIO</button>
+        <button onclick="salvarTreino()" class="h-11 px-5 rounded-xl bg-[#0F1E3D] text-white font-extrabold text-[12px] tracking-widest">SALVAR</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal" class="fixed inset-0 z-50 hidden"><div class="absolute inset-0 bg-black/40" onclick="closeModal()"></div><div class="absolute left-4 right-4 bottom-4 sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 bg-white rounded-[20px] p-5 max-w-[480px] w-auto sm:w-[480px] shadow-2xl max-h-[90vh] overflow-auto" id="modalContent"></div></div>
+  `;
+  if(state.aba==='evolucao') setTimeout(()=>{ const sel=document.getElementById('selEvoEx'); if(sel && state.evoExId) sel.value=state.evoExId; renderEvoDetalhe(); }, 50);
+}
+
+function renderTreino(){
+  const grupo=getGrupo(state.selecao.grupoId);
+  const treino=state.treinoAtual;
+  if(!grupo || !treino) return '<div>Carregando...</div>';
+  return `
+  <section class="space-y-4">
+    <div class="bg-white rounded-[20px] border border-[#0F1E3D]/10 p-4">
+      <div class="text-[11px] font-bold tracking-widest opacity-60 mb-2">GRUPO DE TREINO</div>
+      <div class="flex flex-wrap gap-2">
+        ${state.grupos.map(g=>`<button onclick="selectGrupo('${g.id}')" class="px-4 h-10 rounded-full border text-[12px] font-extrabold tracking-wide transition ${state.selecao.grupoId===g.id?'bg-[#0F1E3D] text-white border-[#0F1E3D]':'bg-[#F8F6F1] border-[#0F1E3D]/10 hover:border-[#0F1E3D]/30'}">${g.nome}</button>`).join('')}
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+        <div>
+          <div class="text-[11px] font-bold tracking-widest opacity-60 mb-1">DATA DO TREINO</div>
+          <input type="date" value="${state.selecao.data}" onchange="selectData(this.value)" class="w-full h-11 rounded-xl bg-[#F8F6F1] border border-[#0F1E3D]/10 px-3 text-[14px] font-semibold outline-none focus:border-[#0F1E3D]/30">
+        </div>
+        <div>
+          <div class="text-[11px] font-bold tracking-widest opacity-60 mb-1">UNIDADE / LOCAL</div>
+          <div class="flex flex-wrap gap-1.5">
+            ${state.unidades.filter(u=>u.ativa).map(u=>`<button onclick="selectUnidade('${u.id}')" class="px-3 h-9 rounded-full border text-[11px] font-bold ${state.selecao.unidadeId===u.id?'bg-[#0F1E3D] text-white':'bg-white'}">${u.nome}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="text-[11px] font-bold tracking-widest opacity-60">OBSERVAÇÃO GERAL DO TREINO</label>
+        <textarea oninput="updateObsGeral(this.value)" placeholder="Ex: Treino pesado, ajustar carga na próxima..." class="mt-1 w-full min-h-[60px] rounded-xl bg-[#F8F6F1] border border-[#0F1E3D]/10 p-3 text-[13px] outline-none">${treino.obsGeral||''}</textarea>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <div class="text-[12px] font-extrabold tracking-widest">EXERCÍCIOS • ${grupo.exercicios.filter(e=>e.ativo).length}</div>
+      <button onclick="openAddExercicio()" class="h-9 px-4 rounded-full bg-[#0F1E3D] text-white text-[11px] font-bold tracking-widest">+ ADICIONAR EXERCÍCIO</button>
+    </div>
+
+    <div class="space-y-4">
+      ${grupo.exercicios.filter(e=>e.ativo).sort((a,b)=>a.ordem-b.ordem).map(ex=>{
+        const ed=treino.exerciciosData[ex.id];
+        if(!ed) return '';
+        const volJ=calcVolume(ed.series,'jonatan');
+        const volC=calcVolume(ed.series,'camile');
+        return `
+        <div class="bg-white rounded-[20px] border-2 ${ed.concluido?'card-concluido border-[#00C950]':'border-[#0F1E3D]/10'} p-4 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="font-extrabold text-[15px] leading-tight">${ex.nome}</h3>
+                ${ed.concluido?'<span class="px-2 py-0.5 rounded-full bg-[#00C950] text-white text-[10px] font-bold">CONCLUÍDO</span>':''}
+              </div>
+              <div class="mt-1 flex gap-2 text-[11px] font-mono"><span class="px-2 py-1 rounded-full bg-[#F8F6F1]">J: ${Math.round(volJ)} kg</span><span class="px-2 py-1 rounded-full bg-[#F8F6F1]">${state.atletas.atleta2.nome}: ${Math.round(volC)} kg</span></div>
+            </div>
+            <div class="flex gap-1">
+              <button onclick="toggleConcluido('${ex.id}')" class="w-9 h-9 rounded-full border flex items-center justify-center ${ed.concluido?'bg-[#00C950] text-white border-[#00C950]':'bg-white'}" title="Concluir">${ed.concluido?'✓':'○'}</button>
+              <button onclick="openEditExercicio('${ex.id}')" class="w-9 h-9 rounded-full bg-white border flex items-center justify-center">✏️</button>
+              <button onclick="deleteExercicio('${ex.id}')" class="w-9 h-9 rounded-full bg-white border flex items-center justify-center">🗑️</button>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <div class="hidden sm:grid grid-cols-[48px_1fr_1fr_48px] gap-2 text-[11px] font-bold tracking-widest opacity-50 px-1 pb-2 border-b"><div>SÉRIE</div><div>${state.atletas.atleta1.nome.toUpperCase()}</div><div>${state.atletas.atleta2.nome.toUpperCase()}</div><div></div></div>
+            <div class="space-y-2 mt-2">
+              ${ed.series.map((s, idx)=>`
+                <div class="grid grid-cols-1 sm:grid-cols-[48px_1fr_1fr_48px] gap-2 items-center bg-[#F8F6F1]/70 sm:bg-transparent rounded-xl p-2 sm:p-1">
+                  <div class="hidden sm:flex font-mono font-bold text-[13px] w-8 h-8 rounded-full bg-[#0F1E3D] text-white items-center justify-center">${idx+1}</div>
+                  <div class="flex sm:hidden justify-between items-center"><span class="font-mono font-bold text-[12px] bg-[#0F1E3D] text-white w-6 h-6 rounded-full flex items-center justify-center">${idx+1}</span><button onclick="removeSerie('${ex.id}','${s.id}')" class="text-[11px] font-bold opacity-50">REMOVER</button></div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="flex gap-1"><input inputmode="decimal" placeholder="kg" value="${s.jonatan.carga}" oninput="updateSerie('${ex.id}','${s.id}','jonatan','carga',this.value)" class="input-carga w-full h-10 rounded-xl border bg-white px-2 text-[14px] font-semibold outline-none"><input inputmode="numeric" placeholder="reps" value="${s.jonatan.reps}" oninput="updateSerie('${ex.id}','${s.id}','jonatan','reps',this.value)" class="input-carga w-full h-10 rounded-xl border bg-white px-2 text-[14px] font-semibold outline-none"></div>
+                    <div class="flex gap-1"><input inputmode="decimal" placeholder="kg" value="${s.camile.carga}" oninput="updateSerie('${ex.id}','${s.id}','camile','carga',this.value)" class="input-carga w-full h-10 rounded-xl border bg-white px-2 text-[14px] font-semibold outline-none"><input inputmode="numeric" placeholder="reps" value="${s.camile.reps}" oninput="updateSerie('${ex.id}','${s.id}','camile','reps',this.value)" class="input-carga w-full h-10 rounded-xl border bg-white px-2 text-[14px] font-semibold outline-none"></div>
+                  </div>
+                  <div class="hidden sm:flex"><button onclick="removeSerie('${ex.id}','${s.id}')" class="w-8 h-8 rounded-full bg-white border flex items-center justify-center">×</button></div>
+                </div>
+              `).join('')}
+            </div>
+            <button onclick="addSerie('${ex.id}')" class="mt-3 w-full sm:w-auto h-10 px-4 rounded-full bg-[#0F1E3D]/5 border border-dashed border-[#0F1E3D]/20 text-[11px] font-bold tracking-widest hover:bg-[#0F1E3D]/10">+ ADICIONAR SÉRIE</button>
+            <div class="mt-3"><input placeholder="Observação do exercício..." value="${(ed.observacao||'').replace(/"/g,'&quot;')}" oninput="updateObsEx('${ex.id}',this.value)" class="w-full h-10 rounded-xl bg-[#F8F6F1] border border-[#0F1E3D]/10 px-3 text-[12px] outline-none"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </section>`;
+}
+
+function renderHistorico(){
+  let lista=Object.values(state.treinos).sort((a,b)=> b.data.localeCompare(a.data) || b.updatedAt-a.updatedAt);
+  if(state.filtroHist!=='todos') lista=lista.filter(t=>t.grupoId===state.filtroHist);
+  if(lista.length===0) return `<div class="bg-white rounded-[20px] border p-8 text-center opacity-60">Nenhum treino salvo ainda. Salve seu primeiro treino!</div>`;
+  return `
+  <section class="space-y-3">
+    <div class="flex gap-2 overflow-x-auto pb-2">
+      <button onclick="filtrarHist('todos')" class="px-4 h-9 rounded-full ${state.filtroHist==='todos'?'bg-[#0F1E3D] text-white':'bg-white border'} text-[11px] font-bold whitespace-nowrap">TODOS</button>
+      ${state.grupos.map(g=>`<button onclick="filtrarHist('${g.id}')" class="px-4 h-9 rounded-full ${state.filtroHist===g.id?'bg-[#0F1E3D] text-white':'bg-white border'} text-[11px] font-bold whitespace-nowrap">${g.nome}</button>`).join('')}
+    </div>
+    ${lista.map(t=>{
+      const g=getGrupo(t.grupoId); const u=getUnidade(t.unidadeId);
+      let vol=0, tot=0, conc=0;
+      if(g){
+        g.exercicios.forEach(ex=>{
+          const ed=t.exerciciosData[ex.id];
+          if(ed){ tot++; if(ed.concluido) conc++; ed.series?.forEach(s=>{
+            const cj=parseFloat((s.jonatan.carga||0).toString().replace(',','.')); const rj=parseInt(s.jonatan.reps||0); if(!isNaN(cj)&&!isNaN(rj)) vol+=cj*rj;
+          }) }
+        });
+      }
+      return `<div onclick="carregarTreino('${t.id}')" class="bg-white rounded-[16px] border p-4 flex justify-between items-center hover:border-[#0F1E3D]/30 cursor-pointer">
+        <div><div class="font-extrabold text-[13px]">${g?.nome||t.grupoId} • ${formatBR(t.data)}</div><div class="text-[11px] opacity-60">${u?.nome||t.unidadeId} • ${conc}/${tot} concluídos</div></div>
+        <div class="text-right"><div class="font-mono font-bold text-[12px]">${Math.round(vol)} kg</div><div class="text-[10px] opacity-50">${new Date(t.updatedAt).toLocaleTimeString()}</div></div>
+      </div>`;
+    }).join('')}
+  </section>`;
+}
+
+function renderEvolucao(){
+  const todosEx=[];
+  state.grupos.forEach(g=> g.exercicios.forEach(ex=> todosEx.push({id:ex.id, nome:ex.nome, grupo:g.nome})));
+  if(!state.evoExId && todosEx.length) state.evoExId=todosEx[0].id;
+  return `
+  <section class="space-y-4">
+    <div class="bg-white rounded-[20px] border p-4">
+      <div class="text-[11px] font-bold tracking-widest opacity-60 mb-2">SELECIONE O EXERCÍCIO</div>
+      <select id="selEvoEx" onchange="changeEvoEx(this.value)" class="w-full h-11 rounded-xl bg-[#F8F6F1] border px-3 text-[13px] font-bold outline-none">
+        ${todosEx.map(e=>`<option value="${e.id}" ${state.evoExId===e.id?'selected':''}>${e.nome} • ${e.grupo}</option>`).join('')}
+      </select>
+      <div class="grid grid-cols-2 gap-2 mt-3">
+        <button onclick="setEvoAtleta('jonatan')" class="h-10 rounded-full ${state.evoAtleta==='jonatan'?'bg-[#0F1E3D] text-white':'bg-white border'} text-[11px] font-bold">${state.atletas.atleta1.nome}</button>
+        <button onclick="setEvoAtleta('camile')" class="h-10 rounded-full ${state.evoAtleta==='camile'?'bg-[#0F1E3D] text-white':'bg-white border'} text-[11px] font-bold">${state.atletas.atleta2.nome}</button>
+      </div>
+    </div>
+    <div id="evoDetalhe" class="space-y-3"></div>
+  </section>`;
+}
+function changeEvoEx(id){ state.evoExId=id; renderEvoDetalhe(); }
+function setEvoAtleta(a){ state.evoAtleta=a; render(); }
+function renderEvoDetalhe(){
+  const exId=state.evoExId || document.getElementById('selEvoEx')?.value;
+  if(!exId) return;
+  state.evoExId=exId;
+  const registros=[];
+  Object.values(state.treinos).forEach(t=>{
+    const ed=t.exerciciosData[exId];
+    if(ed && ed.series && ed.series.length){
+      let maxC=0, totV=0;
+      ed.series.forEach(s=>{
+        const c=parseFloat((s[state.evoAtleta]?.carga||0).toString().replace(',','.')); const r=parseInt(s[state.evoAtleta]?.reps||0);
+        if(c>maxC) maxC=c;
+        if(!isNaN(c)&&!isNaN(r)) totV+=c*r;
+      });
+      if(maxC>0) registros.push({data:t.data, grupoId:t.grupoId, unidadeId:t.unidadeId, maxC, totV});
+    }
+  });
+  registros.sort((a,b)=> a.data.localeCompare(b.data));
+  const container=document.getElementById('evoDetalhe');
+  if(!container) return;
+  if(registros.length===0){ container.innerHTML='<div class="bg-white rounded-[20px] border p-6 text-center opacity-60 text-[13px]">Sem histórico para este exercício/atleta ainda.</div>'; return; }
+  container.innerHTML=`
+    <div class="bg-white rounded-[20px] border p-4">
+      <div class="text-[11px] font-bold tracking-widest opacity-60 mb-3">EVOLUÇÃO • CARGA MÁXIMA</div>
+      <div class="space-y-2">
+        ${registros.map(r=>`
+          <div class="flex items-center gap-3">
+            <div class="w-[68px] text-[11px] font-mono">${formatBR(r.data)}</div>
+            <div class="flex-1 h-8 rounded-full bg-[#F8F6F1] overflow-hidden relative"><div class="h-full bg-[#0F1E3D] transition-all" style="width:${Math.round(r.maxC/ (Math.max(...registros.map(x=>x.maxC),1)) *100)}%"></div><span class="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-bold text-white mix-blend-difference">${r.maxC}kg</span></div>
+            <div class="w-[70px] text-right text-[11px] font-mono">${Math.round(r.totV)} kg</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="bg-[#0F1E3D] text-white rounded-[20px] p-4">
+      <div class="text-[11px] tracking-widest opacity-60">RESUMO</div>
+      <div class="mt-1 font-extrabold">Evolução: ${registros[0].maxC}kg → ${registros[registros.length-1].maxC}kg (${registros[0].maxC?(((registros[registros.length-1].maxC/registros[0].maxC)-1)*100).toFixed(1):0}%)</div>
+      <div class="text-[12px] opacity-70 mt-1">${registros.length} registros encontrados</div>
+    </div>
+  `;
+}
+
+function renderConfig(){
+  return `
+  <section class="space-y-4">
+    <div class="bg-white rounded-[20px] border p-4">
+      <div class="font-extrabold text-[13px]">ATLETAS</div>
+      <div class="grid grid-cols-2 gap-3 mt-3">
+        <div><label class="text-[11px] font-bold opacity-60">ATLETA 1</label><input value="${state.atletas.atleta1.nome}" oninput="updateAtleta('atleta1',this.value)" class="mt-1 w-full h-11 rounded-xl bg-[#F8F6F1] border px-3 font-bold"></div>
+        <div><label class="text-[11px] font-bold opacity-60">ATLETA 2</label><input value="${state.atletas.atleta2.nome}" oninput="updateAtleta('atleta2',this.value)" class="mt-1 w-full h-11 rounded-xl bg-[#F8F6F1] border px-3 font-bold"></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-[20px] border p-4">
+      <div class="flex justify-between items-center"><div class="font-extrabold text-[13px]">UNIDADES (ID PERMANENTE)</div><button onclick="openAddUnidade()" class="h-8 px-3 rounded-full bg-[#0F1E3D] text-white text-[11px] font-bold">+ NOVA</button></div>
+      <div class="mt-3 space-y-2">
+        ${state.unidades.map(u=>`
+          <div class="flex items-center gap-2 p-2 rounded-xl bg-[#F8F6F1]">
+            <div class="w-8 h-8 rounded-full bg-[#0F1E3D] text-white flex items-center justify-center text-[10px] font-mono">${u.id.slice(0,3)}</div>
+            <input value="${u.nome}" onchange="editUnidade('${u.id}',this.value)" class="flex-1 bg-transparent font-bold text-[13px] outline-none">
+            <span class="text-[10px] font-mono px-2 py-1 rounded-full ${u.ativa?'bg-[#00C950]/20 text-[#00C950]':'bg-red-100 text-red-600'}">${u.ativa?'ATIVA':'INATIVA'}</span>
+            <button onclick="toggleUnidade('${u.id}')" class="w-8 h-8 rounded-full bg-white border">◎</button>
+            <button onclick="deleteUnidade('${u.id}')" class="w-8 h-8 rounded-full bg-white border">🗑️</button>
+          </div>
+        `).join('')}
+      </div>
+      <div class="mt-3 text-[11px] opacity-60 leading-tight">O nome pode ser alterado sem quebrar histórico. O ID interno permanece o mesmo.</div>
+    </div>
+    <div class="bg-white rounded-[20px] border p-4">
+      <div class="font-extrabold text-[13px]">BACKUP & DADOS</div>
+      <div class="grid grid-cols-2 gap-2 mt-3">
+        <button onclick="exportarBackup()" class="h-11 rounded-xl bg-white border font-bold text-[11px]">EXPORTAR JSON</button>
+        <label class="h-11 rounded-xl bg-[#0F1E3D] text-white font-bold text-[11px] flex items-center justify-center cursor-pointer">IMPORTAR JSON<input type="file" accept=".json" class="hidden" onchange="importarBackup(event)"></label>
+      </div>
+      <button onclick="limparTudo()" class="mt-2 w-full h-10 rounded-xl bg-red-50 text-red-600 border border-red-100 font-bold text-[11px]">LIMPAR TODOS OS DADOS (CUIDADO)</button>
+      <div class="mt-3 text-[11px] font-mono opacity-60">Treinos: ${Object.keys(state.treinos).length} • Grupos: ${state.grupos.length} • Unidades: ${state.unidades.length}</div>
+    </div>
+    <div class="bg-[#0F1E3D] text-white rounded-[20px] p-4">
+      <div class="font-extrabold tracking-widest text-[11px] opacity-60">ARQUITETURA v40</div>
+      <div class="mt-2 text-[12px] leading-relaxed opacity-80">GRUPO → DATA → UNIDADE → EXERCÍCIOS (ID permanente) → SÉRIES (ID) → ATLETAS independentes → STATUS CONCLUÍDO por exercício. Sem dependência de dia da semana.</div>
+    </div>
+  </section>`;
+}
+
+function setAba(aba){ state.aba=aba; render(); }
+function selectGrupo(id){ state.selecao.grupoId=id; ensureTreino(); render(); }
+function selectData(data){ state.selecao.data=data; ensureTreino(); render(); }
+function selectUnidade(id){ state.selecao.unidadeId=id; ensureTreino(); render(); }
+function carregarTreino(id){ const parts=id.split('|'); if(parts.length===3){ state.selecao={grupoId:parts[0], data:parts[1], unidadeId:parts[2]}; state.aba='treino'; render(); window.scrollTo(0,0); } }
+function filtrarHist(id){ state.filtroHist=id; render(); }
+function updateObsGeral(v){ if(state.treinoAtual){ state.treinoAtual.obsGeral=v; state.treinoAtual.updatedAt=Date.now(); save(LS_TREINOS, state.treinos); } }
+function updateSerie(exId, serId, atleta, campo, val){ const ed=state.treinoAtual?.exerciciosData[exId]; if(!ed) return; const ser=ed.series.find(s=>s.id===serId); if(ser){ ser[atleta][campo]=val; state.treinoAtual.updatedAt=Date.now(); save(LS_TREINOS, state.treinos); } }
+function addSerie(exId){ const ed=state.treinoAtual.exerciciosData[exId]; ed.series.push({id:uid('ser'), jonatan:{carga:'',reps:''}, camile:{carga:'',reps:''}}); state.treinoAtual.updatedAt=Date.now(); save(LS_TREINOS, state.treinos); render(); }
+function removeSerie(exId, serId){ if(!confirm('Remover esta série?')) return; const ed=state.treinoAtual.exerciciosData[exId]; ed.series=ed.series.filter(s=>s.id!==serId); if(ed.series.length===0) ed.series.push({id:uid('ser'), jonatan:{carga:'',reps:''}, camile:{carga:'',reps:''}}); save(LS_TREINOS, state.treinos); render(); }
+function toggleConcluido(exId){ const ed=state.treinoAtual.exerciciosData[exId]; ed.concluido=!ed.concluido; state.treinoAtual.updatedAt=Date.now(); save(LS_TREINOS, state.treinos); render(); }
+function updateObsEx(exId, v){ state.treinoAtual.exerciciosData[exId].observacao=v; save(LS_TREINOS, state.treinos); }
+function salvarTreino(){ if(state.treinoAtual){ state.treinoAtual.updatedAt=Date.now(); save(LS_TREINOS, state.treinos); alert('Treino salvo! '+formatBR(state.treinoAtual.data)+' • '+getGrupo(state.treinoAtual.grupoId).nome); } }
+
+function openAddExercicio(){ document.getElementById('modal').classList.remove('hidden'); document.getElementById('modalContent').innerHTML=`<div class="font-extrabold text-[14px]">+ ADICIONAR EXERCÍCIO</div><div class="text-[11px] opacity-60 mt-1">Será adicionado apenas ao grupo ${getGrupo(state.selecao.grupoId).nome}</div><input id="newExNome" placeholder="Nome do exercício" class="mt-4 w-full h-11 rounded-xl bg-[#F8F6F1] border px-3 font-bold outline-none"><div class="grid grid-cols-2 gap-2 mt-4"><button onclick="closeModal()" class="h-11 rounded-xl bg-[#F8F6F1] font-bold text-[12px]">CANCELAR</button><button onclick="confirmAddExercicio()" class="h-11 rounded-xl bg-[#0F1E3D] text-white font-bold text-[12px]">ADICIONAR</button></div>`; setTimeout(()=>document.getElementById('newExNome').focus(),100); }
+function confirmAddExercicio(){ const nome=document.getElementById('newExNome').value.trim(); if(!nome) return alert('Digite o nome'); const grupo=getGrupo(state.selecao.grupoId); const novo={id:uid('ex'), nome, ordem: grupo.exercicios.length+1, ativo:true}; grupo.exercicios.push(novo); state.treinoAtual.exerciciosData[novo.id]={series:[{id:uid('ser'), jonatan:{carga:'',reps:''}, camile:{carga:'',reps:''}}], concluido:false, observacao:''}; save(LS_GRUPOS, state.grupos); save(LS_TREINOS, state.treinos); closeModal(); render(); }
+function openEditExercicio(exId){ const grupo=getGrupo(state.selecao.grupoId); const ex=grupo.exercicios.find(e=>e.id===exId); document.getElementById('modal').classList.remove('hidden'); document.getElementById('modalContent').innerHTML=`<div class="font-extrabold">EDITAR EXERCÍCIO</div><div class="text-[11px] font-mono opacity-60 mt-1">ID permanente: ${ex.id} • Histórico preservado</div><input id="editExNome" value="${ex.nome.replace(/"/g,'&quot;')}" class="mt-4 w-full h-11 rounded-xl bg-[#F8F6F1] border px-3 font-bold outline-none"><div class="grid grid-cols-2 gap-2 mt-4"><button onclick="closeModal()" class="h-11 rounded-xl bg-[#F8F6F1] font-bold text-[12px]">CANCELAR</button><button onclick="confirmEditExercicio('${exId}')" class="h-11 rounded-xl bg-[#0F1E3D] text-white font-bold text-[12px]">SALVAR</button></div>`; }
+function confirmEditExercicio(exId){ const nome=document.getElementById('editExNome').value.trim(); if(!nome) return; const grupo=getGrupo(state.selecao.grupoId); const ex=grupo.exercicios.find(e=>e.id===exId); ex.nome=nome; save(LS_GRUPOS, state.grupos); closeModal(); render(); }
+function deleteExercicio(exId){ if(!confirm('Excluir exercício da lista ativa? Histórico antigo será preservado (exercício ficará inativo).')) return; const grupo=getGrupo(state.selecao.grupoId); const ex=grupo.exercicios.find(e=>e.id===exId); const temHistorico=Object.values(state.treinos).some(t=> t.exerciciosData[exId] && t.exerciciosData[exId].series.some(s=> (s.jonatan.carga||s.camile.carga))); if(temHistorico){ ex.ativo=false; } else { grupo.exercicios=grupo.exercicios.filter(e=>e.id!==exId); delete state.treinoAtual.exerciciosData[exId]; } save(LS_GRUPOS, state.grupos); save(LS_TREINOS, state.treinos); render(); }
+
+function updateAtleta(id,nome){ state.atletas[id].nome=nome||state.atletas[id].nome; save(LS_ATLETAS, state.atletas); }
+function openAddUnidade(){ const nome=prompt('Nome da nova unidade:'); if(!nome) return; const nova={id:uid('uni'), nome:nome.trim(), ativa:true}; state.unidades.push(nova); save(LS_UNIDADES, state.unidades); render(); }
+function editUnidade(id, novoNome){ const u=state.unidades.find(x=>x.id===id); if(u){ u.nome=novoNome.trim()||u.nome; save(LS_UNIDADES, state.unidades); } }
+function toggleUnidade(id){ const u=state.unidades.find(x=>x.id===id); if(u){ u.ativa=!u.ativa; save(LS_UNIDADES, state.unidades); render(); } }
+function deleteUnidade(id){ if(state.unidades.length<=1) return alert('Mantenha pelo menos 1 unidade'); if(!confirm('Excluir unidade? Se houver histórico, ela ficará inativa.')) return; const temHist=Object.values(state.treinos).some(t=>t.unidadeId===id); if(temHist){ const u=state.unidades.find(x=>x.id===id); u.ativa=false; } else { state.unidades=state.unidades.filter(x=>x.id!==id); if(state.selecao.unidadeId===id) state.selecao.unidadeId=state.unidades[0].id; } save(LS_UNIDADES, state.unidades); render(); }
+
+function gerarRelatorio(){
+  const t=state.treinoAtual; const g=getGrupo(t.grupoId); const u=getUnidade(t.unidadeId);
+  let txt=`TREINOS TEAM CS
+Data: ${formatBR(t.data)} | Grupo: ${g.nome} | Unidade: ${u.nome}
+${'-'.repeat(40)}
+`;
+  g.exercicios.filter(e=>e.ativo).forEach(ex=>{
+    const ed=t.exerciciosData[ex.id]; if(!ed) return;
+    txt+=`\n${ex.nome} ${ed.concluido?'[CONCLUÍDO]':''}\n`;
+    ed.series.forEach((s,i)=>{
+      const jC=s.jonatan.carga||'-', jR=s.jonatan.reps||'-', cC=s.camile.carga||'-', cR=s.camile.reps||'-';
+      const vJ=(parseFloat((jC||0).toString().replace(',','.'))*parseInt(jR||0))||0;
+      const vC=(parseFloat((cC||0).toString().replace(',','.'))*parseInt(cR||0))||0;
+      txt+=`  S${i+1} - ${state.atletas.atleta1.nome}: ${jC}kg x ${jR} (${vJ}) | ${state.atletas.atleta2.nome}: ${cC}kg x ${cR} (${vC})\n`;
+    });
+    if(ed.observacao) txt+=`  Obs: ${ed.observacao}\n`;
+    txt+=`  Volume: J=${Math.round(calcVolume(ed.series,'jonatan'))}kg | C=${Math.round(calcVolume(ed.series,'camile'))}kg\n`;
+  });
+  let totJ=0, totC=0; g.exercicios.forEach(ex=>{ const ed=t.exerciciosData[ex.id]; if(ed){ totJ+=calcVolume(ed.series,'jonatan'); totC+=calcVolume(ed.series,'camile'); }});
+  txt+=`\n${'-'.repeat(40)}\nVolume Total - ${state.atletas.atleta1.nome}: ${Math.round(totJ)}kg | ${state.atletas.atleta2.nome}: ${Math.round(totC)}kg\n`;
+  if(t.obsGeral) txt+=`Obs Geral: ${t.obsGeral}\n`;
+  document.getElementById('modal').classList.remove('hidden');
+  document.getElementById('modalContent').innerHTML=`
+    <div class="font-extrabold">RELATÓRIO</div>
+    <textarea id="txtRel" class="mt-3 w-full h-[320px] rounded-xl bg-[#F8F6F1] border p-3 text-[12px] font-mono">${txt}</textarea>
+    <div class="grid grid-cols-2 gap-2 mt-3">
+      <button onclick="copiarRel()" class="h-11 rounded-xl bg-white border font-bold text-[11px]">COPIAR</button>
+      <button onclick="compartilharRel()" class="h-11 rounded-xl bg-[#0F1E3D] text-white font-bold text-[11px]">COMPARTILHAR</button>
+    </div>
+    <button onclick="closeModal()" class="mt-2 w-full h-10 rounded-xl bg-[#F8F6F1] font-bold text-[11px]">FECHAR</button>
+  `;
+}
+function copiarRel(){ const el=document.getElementById('txtRel'); el.select(); document.execCommand('copy'); if(navigator.clipboard) navigator.clipboard.writeText(el.value); alert('Relatório copiado!'); }
+async function compartilharRel(){ const el=document.getElementById('txtRel'); const text=el.value; if(navigator.share){ try{ await navigator.share({title:'Treinos Team CS', text}); }catch{} } else { copiarRel(); } }
+
+function exportarBackup(){ const data={grupos:state.grupos, unidades:state.unidades, treinos:state.treinos, atletas:state.atletas, exportedAt:new Date().toISOString()}; const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`backup_treinos_teamcs_${todayISO()}.json`; a.click(); URL.revokeObjectURL(url); }
+function importarBackup(e){ const file=e.target.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=()=>{ try{ const data=JSON.parse(reader.result); if(data.grupos) { state.grupos=data.grupos; save(LS_GRUPOS,data.grupos);} if(data.unidades){ state.unidades=data.unidades; save(LS_UNIDADES,data.unidades);} if(data.treinos){ state.treinos={...state.treinos, ...data.treinos}; save(LS_TREINOS, state.treinos);} if(data.atletas){ state.atletas=data.atletas; save(LS_ATLETAS,data.atletas);} alert('Backup importado com sucesso!'); render(); }catch(err){ alert('Erro ao importar: '+err.message);} }; reader.readAsText(file); }
+function limparTudo(){ if(!confirm('ATENÇÃO: Isso apaga TUDO. Confirmar?')) return; if(!confirm('Tem certeza absoluta?')) return; localStorage.removeItem(LS_GRUPOS); localStorage.removeItem(LS_UNIDADES); localStorage.removeItem(LS_TREINOS); localStorage.removeItem(LS_ATLETAS); location.reload(); }
+function closeModal(){ document.getElementById('modal').classList.add('hidden'); }
+
+(function(){ render(); })();
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>
